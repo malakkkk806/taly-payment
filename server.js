@@ -15,7 +15,7 @@ app.use(express.static('public'));
 const EPG_API_BASE = 'https://sndbx-epgapi.taly.com.eg:5002';
 
 async function getKid() {
-    const rawPublicKey = fs.readFileSync(path.join(__dirname, '..', 'Booking_api[1]', 'publickey.txt'), 'utf8');
+    const rawPublicKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'publickey.txt'), 'utf8');
     // Replace all literal \n with real newlines
     const publicKey = rawPublicKey.replace(/\\n/g, '\n');
     console.log('Payload to /api/Key:', {
@@ -41,7 +41,7 @@ async function getKid() {
 }
 
 async function getJwt(kid) {
-    const rawPrivateKey = fs.readFileSync(path.join(__dirname, '..', 'Booking_api[1]', 'privatekey.txt'), 'utf8');
+    const rawPrivateKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'privatekey.txt'), 'utf8');
     // Replace all literal \n with real newlines
     const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
     console.log('Payload to /api/CreateJWT:', {
