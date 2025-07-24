@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Test</title>
+    <style>
+        .debug {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <form id="paymentForm">
+        <div>
+            <label>Amount:</label>
+            <input type="number" id="amount" value="100">
+        </div>
+        <button type="submit">Pay</button>
+    </form>
+    <div id="result"></div>
+    <h3>Response Data:</h3>
+    <pre id="debug" class="debug"></pre>
+    <h3>Raw Response:</h3>
+    <pre id="rawResponse" class="debug"></pre>
+
+    <script>
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('result');
+            const debugDiv = document.getElementById('debug');
+            const rawResponseDiv = document.getElementById('rawResponse');
+            
+            try {
+                resultDiv.textContent = 'Processing payment...';
+                resultDiv.className = '';
+                
+                const amount = document.getElementById('amount').value;
+                if (!amount || amount <= 0) {
+                    throw new Error('Please enter a valid amount');
+                }
+
+                const response = await fetch('/api/pay', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount })
+                });
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                debugDiv.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.rawResponse) {
+                    rawResponseDiv.textContent = JSON.stringify(data.rawResponse, null, 2);
+                }
+
+                if (data.formUrl) {
+                    resultDiv.className = 'success';
+                    resultDiv.textContent = `Success! Redirecting to: ${data.formUrl}`;
+                    setTimeout(() => window.location.href = data.formUrl, 2000);
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.textContent = data.error || 'No payment form URL received';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.className = 'error';
+                resultDiv.textContent = error.message;
+                debugDiv.textContent = JSON.stringify(error, null, 2);
+            }
+        });
+    </script>
+</body>
+</html>

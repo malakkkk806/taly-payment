@@ -1,118 +1,200 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
+const bodyParser = require('body-parser');
+require('dotenv').config();
+const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
-const { randomUUID } = require('crypto');
+
 
 const app = express();
-const PORT = 3000;
-
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// Read keys
-const privateKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'privatekey.txt'), 'utf8');
-const publicKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'publickey.txt'), 'utf8');
-
-// Replace with your actual API key and secret from Taly
-const API_KEY = process.env.TALY_API_KEY || 'YOUR_API_KEY';
-const API_SECRET = process.env.TALY_API_SECRET || 'YOUR_API_SECRET';
-
 const EPG_API_BASE = 'https://sndbx-epgapi.taly.com.eg:5002';
-const MERCHANT_NAME = 'Booking_api';
 
-// Helper: Generate a unique order number
-function generateOrderNumber() {
-    return 'ORDER-' + Date.now();
-}
-
-// Helper to get kid from /api/Key
 async function getKid() {
-    const publicKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'publickey.txt'), 'utf8');
+    const rawPublicKey = fs.readFileSync(path.join(__dirname, '..', 'Booking_api[1]', 'publickey.txt'), 'utf8');
+    // Replace all literal \n with real newlines
+    const publicKey = rawPublicKey.replace(/\\n/g, '\n');
+    console.log('Payload to /api/Key:', {
+      username: process.env.TALLY_MERCHANT_USERNAME,
+      rsa_public_key: publicKey
+    });
     const response = await axios.post(
         `${EPG_API_BASE}/api/Key`,
         {
-            publicKey: publicKey.replace(/\r?\n/g, ''),
-            merchant: MERCHANT_NAME
+            username: process.env.TALLY_MERCHANT_USERNAME,
+            rsa_public_key: publicKey
+        },
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
         }
     );
+    console.log('Response from /api/Key:', response.data);
+    if (!response.data.kid) throw new Error('No KID received');
     return response.data.kid;
 }
 
-// Helper to get JWT from /api/CreateJWT
 async function getJwt(kid) {
-    const privateKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'privatekey.txt'), 'utf8');
+    const rawPrivateKey = fs.readFileSync(path.join(__dirname, '..', 'Booking_api[1]', 'privatekey.txt'), 'utf8');
+    // Replace all literal \n with real newlines
+    const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
+    console.log('Payload to /api/CreateJWT:', {
+      kid,
+      rsa_private_key: privateKey
+    });
     const response = await axios.post(
         `${EPG_API_BASE}/api/CreateJWT`,
         {
-            kid,
-            privateKey: privateKey.replace(/\r?\n/g, '')
+            kid: kid,
+            rsa_private_key: privateKey
+        },
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
         }
     );
-    return response.data.jwt;
+    console.log('Response from /api/CreateJWT:', response.data);
+    if (!response.data.JWToken) throw new Error('No JWT received');
+    return response.data.JWToken;
 }
 
 app.post('/api/pay', async (req, res) => {
     try {
-        const { amount, cardNumber, expiry, cvv } = req.body;
-        const [exp_month, exp_year_short] = expiry.split('/');
-        const exp_year = '20' + exp_year_short;
-
-        // 1. Get kid
+        // 1. Get KID
         const kid = await getKid();
+
         // 2. Get JWT
         const jwt = await getJwt(kid);
 
-        // 3. Prepare form data for process-payment
-        const formData = new URLSearchParams();
-        const mdOrder = randomUUID();
-        formData.append('MdOrder', mdOrder);
-        formData.append('Pan', cardNumber);
-        formData.append('Year', parseInt(exp_year, 10));
-        formData.append('Month', parseInt(exp_month, 10));
-        formData.append('Language', 'en');
-        formData.append('Cvc', cvv);
+        // 3. Register payment
+        const orderNumber = 'ORDER' + Date.now();
+        const registerData = {
+            userName: process.env.TALLY_MERCHANT_USERNAME,
+            password: process.env.TALLY_MERCHANT_PASSWORD,
+            orderNumber: orderNumber,
+            amount: req.body.amount * 100, // minor units
+            currency: '818',
+            returnUrl: 'http://localhost:3000/payment-callback',
+            features: 'FORCE_SSL'
+        };
 
-        // 4. Call process-payment with JWT
         const response = await axios.post(
-            `${EPG_API_BASE}/api/PaymentAPI/process-payment`,
-            formData,
+            'https://sndbx-payment.taly.com.eg/epg/rest/register.do',
+            new URLSearchParams(registerData),
             {
                 headers: {
+                    'Authorization': `Bearer ${jwt}`,
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': `Bearer ${jwt}`
+                    'Accept': 'application/json',
+                    'User-Agent': 'Mozilla/5.0'
                 }
             }
         );
-        res.json(response.data);
-    } catch (error) {
-        let details = null;
-        if (error.response && error.response.data) {
-            try {
-                details = typeof error.response.data === 'string'
-                    ? JSON.parse(error.response.data)
-                    : error.response.data;
-            } catch {
-                details = error.response.data;
-            }
+
+        // 4. Return formUrl to frontend
+        if (response.data.formUrl) {
+            res.json({
+                success: true,
+                formUrl: response.data.formUrl,
+                orderId: response.data.orderId,
+                orderNumber
+            });
+        } else {
+            res.json({
+                success: false,
+                error: 'No form URL received from payment gateway',
+                rawResponse: response.data
+            });
         }
-        res.status(500).json({
+    } catch (error) {
+        res.json({
+            success: false,
             error: error.message,
-            details: details
+            details: error.response?.data
         });
     }
 });
 
-// Global error handler
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({ error: 'Internal server error', details: err.message });
+// Handle user redirect after payment (GET)
+app.get('/payment-callback', (req, res) => {
+    res.send('Payment callback received!<br><pre>' + JSON.stringify(req.query, null, 2) + '</pre>');
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-}); 
+// Handle server-to-server notification (POST)
+app.post('/payment-callback', (req, res) => {
+    console.log('Payment callback POST data:', req.body);
+    res.json({ received: true });
+});
+
+app.post('/api/register-order', async (req, res) => {
+    try {
+        // 1. Get KID
+        const kid = await getKid();
+        // 2. Get JWT
+        const jwt = await getJwt(kid);
+        // 3. Build registerData from req.body
+        const registerData = {
+            userName: req.body.userName,
+            password: req.body.password,
+            orderNumber: req.body.orderNumber,
+            amount: req.body.amount,
+            currency: req.body.currency || '818',
+            returnUrl: req.body.returnUrl || 'http://localhost:3000/payment-callback',
+            features: req.body.features || 'FORCE_SSL'
+        };
+        // 4. Call Taly register.do endpoint
+        const response = await axios.post(
+            'https://sndbx-payment.taly.com.eg/epg/rest/register.do',
+            new URLSearchParams(registerData),
+            {
+                headers: {
+                    'Authorization': `Bearer ${jwt}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json',
+                    'User-Agent': 'Mozilla/5.0'
+                }
+            }
+        );
+        // 5. Return formUrl/orderId to frontend
+        if (response.data.formUrl) {
+            res.json({
+                success: true,
+                formUrl: response.data.formUrl,
+                orderId: response.data.orderId,
+                orderNumber: registerData.orderNumber
+            });
+        } else {
+            res.json({
+                success: false,
+                error: 'No form URL received from payment gateway',
+                rawResponse: response.data
+            });
+        }
+    } catch (error) {
+        res.json({
+            success: false,
+            error: error.message,
+            details: error.response?.data
+        });
+    }
+});
+
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+        res.status(404).json({ error: 'API endpoint not found' });
+    } else {
+        res.status(404).send('Not found');
+    }
+});
+
+app.listen(process.env.PORT || 3000, () => {
+    console.log(`Server running on http://localhost:${process.env.PORT || 3000}`);
+});
