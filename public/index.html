@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Gateway</title>
+</head>
+<body>
+    <h1>Payment Gateway</h1>
+    <form id="paymentForm">
+        <label>Amount: <input type="number" name="amount" required></label><br>
+        <label>Card Number: <input type="text" name="cardNumber" required></label><br>
+        <label>Expiry: <input type="text" name="expiry" placeholder="MM/YY" required></label><br>
+        <label>CVV: <input type="text" name="cvv" required></label><br>
+        <button type="submit">Pay</button>
+    </form>
+    <div id="result" style="margin-top:20px;"></div>
+    <script>
+        document.getElementById('paymentForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const data = {
+                amount: form.amount.value,
+                cardNumber: form.cardNumber.value,
+                expiry: form.expiry.value,
+                cvv: form.cvv.value
+            };
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = 'Processing...';
+            try {
+                const res = await fetch('/api/pay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                let result;
+                try {
+                    result = await res.json();
+                } catch (jsonErr) {
+                    result = { error: 'Invalid JSON response from server.' };
+                }
+                if (res.ok) {
+                    resultDiv.innerHTML = '<b>Payment Result:</b><br><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                } else {
+                    resultDiv.innerHTML = '<b style="color:red">Payment Error:</b><br><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                }
+            } catch (err) {
+                resultDiv.innerHTML = '<b style="color:red">Network Error:</b> ' + err.message;
+            }
+        };
+    </script>
+</body>
+</html> 
