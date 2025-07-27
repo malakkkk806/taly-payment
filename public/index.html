@@ -81,65 +81,64 @@
             <div style="margin-top:8px; font-size:0.95em; color:#d32f2f;">* : required input</div>
         </form>
     </div>
-    <script>
-        document.getElementById('registerOrderForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const resultDiv = document.getElementById('registerOrderResult');
-            resultDiv.className = '';
-            resultDiv.textContent = '';
-            // Validate required fields
-            const firstName = document.getElementById('firstName').value.trim();
-            const lastName = document.getElementById('lastName').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const amount = document.getElementById('regAmount').value.trim();
-            const currency = document.getElementById('currency').value;
-            const agree = document.getElementById('agree').checked;
-            if (!firstName || !lastName || !email || !amount || !currency || !agree) {
-                resultDiv.className = 'error';
-                resultDiv.textContent = 'Please fill all required fields and agree to the terms.';
-                return;
-            }
-            // Build order number
-            const orderNumber = 'ORDER' + Date.now();
-            // Prepare data
-            const data = {
-                userName: 'Booking_api',
-                password: 'Admin@1234',
-                orderNumber,
-                amount,
-                currency,
-                returnUrl: 'http://localhost:3000/payment-callback',
-                features: 'FORCE_SSL',
-                firstName,
-                lastName,
-                mobile: document.getElementById('mobile').value.trim(),
-                email,
-                installmentPlan: document.getElementById('installmentPlan').value,
-                promoCode: document.getElementById('promoCode').value.trim(),
-                service: document.getElementById('service').value.trim(),
-                notes: document.getElementById('notes').value.trim()
-            };
-            resultDiv.textContent = 'Processing...';
-            try {
-                const res = await fetch('/api/register-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (res.ok && result.formUrl) {
-                    resultDiv.className = 'success payment-link';
-                    resultDiv.innerHTML = `<b>Order Registered!</b><br>Order ID: <code>${result.orderId}</code><br>
-                        Payment Link: <a href="${result.formUrl}" target="_blank">${result.formUrl}</a>`;
-                } else {
-                    resultDiv.className = 'error';
-                    resultDiv.innerHTML = `<b>Register Order Error:</b><br><pre>${JSON.stringify(result, null, 2)}</pre>`;
-                }
-            } catch (err) {
-                resultDiv.className = 'error';
-                resultDiv.innerHTML = `<b>Network Error:</b> ${err.message}`;
-            }
+<script>
+document.getElementById('registerOrderForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const resultDiv = document.getElementById('registerOrderResult');
+    resultDiv.className = '';
+    resultDiv.textContent = '';
+
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const amount = document.getElementById('regAmount').value.trim();
+    const currency = document.getElementById('currency').value;
+    const agree = document.getElementById('agree').checked;
+
+    if (!firstName || !lastName || !email || !amount || !currency || !agree) {
+        resultDiv.className = 'error';
+        resultDiv.textContent = 'Please fill all required fields and agree to the terms.';
+        return;
+    }
+
+    const orderNumber = 'ORDER' + Date.now();
+
+    const params = new URLSearchParams({
+        userName: 'Booking_api',
+        password: 'Admin@1234',
+        orderNumber,
+        amount,
+        currency: currency === 'EGP' ? '818' : currency,
+        returnUrl: 'https://tally-payment-production.up.railway.app/',  // لازم تستخدم URL حقيقي
+        features: 'FORCE_SSL'
+    });
+
+    resultDiv.textContent = 'Processing...';
+
+    try {
+        const res = await fetch('/api/register-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params
         });
-    </script>
+
+        const result = await res.json();
+
+        if (res.ok && result.formUrl) {
+            // ✅ نعمل redirect مباشر
+            window.location.href = result.formUrl;
+        } else {
+            resultDiv.className = 'error';
+            resultDiv.innerHTML = `<b>Register Order Error:</b><br><pre>${JSON.stringify(result, null, 2)}</pre>`;
+        }
+    } catch (err) {
+        resultDiv.className = 'error';
+        resultDiv.innerHTML = `<b>Network Error:</b> ${err.message}`;
+    }
+});
+</script>
+
 </body>
 </html> 
