@@ -1,3 +1,5 @@
+// server.js - ready for Railway deployment
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -11,7 +13,6 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
-
 
 const EPG_API_BASE = 'https://sndbx-epgapi.taly.com.eg:5002';
 
@@ -120,6 +121,7 @@ app.post('/api/register-order', async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log('Server running on http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
