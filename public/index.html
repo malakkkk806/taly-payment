@@ -10,7 +10,7 @@
         h1, h2 { color: #c9a43a; margin-bottom: 8px; }
         h2 { font-size: 1.2em; margin-top: 32px; }
         label { display: block; margin: 12px 0 4px 0; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 8px; }
+        input, select, textarea { width: 75%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 8px; }
         .row { display: flex; gap: 16px; }
         .row > div { flex: 1; }
         .section { background: #f5f5f5; border-radius: 8px; padding: 18px 18px 8px 18px; margin-bottom: 18px; }
@@ -47,16 +47,9 @@
                     <div><label>Amount <span class="required">*</span></label><input type="number" id="regAmount" required></div>
                     <div><label>Currency <span class="required">*</span></label>
                         <select id="currency" required>
-                            <option value="USD">USD</option>
-                            <option value="EGP">EGP</option>
+                            <option value="USD">EGP</option>
+                            <option value="EGP">USD</option>
                             <option value="EUR">EUR</option>
-                        </select>
-                    </div>
-                    <div><label>Installment Plan</label>
-                        <select id="installmentPlan">
-                            <option value="">Select Installment Plan</option>
-                            <option value="plan1">Plan 1</option>
-                            <option value="plan2">Plan 2</option>
                         </select>
                     </div>
                 </div>
@@ -74,8 +67,8 @@
             <div id="registerOrderResult"></div>
             <div class="card-icons">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" alt="Visa">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Mastercard-logo.png" alt="MasterCard">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Logo_National_Bank_of_Egypt.png" alt="NBE" style="height:28px;">
+                <img src="https://toppng.com/uploads/preview/mastercard-logo-blue-vector-master-card-logo-11563336609mkav9reydn.png" alt="MasterCard">
+                <img src="https://zeed.tech/wp-content/uploads/2022/04/NBE0.png" alt="NBE" style="height:28px;">
                 <span style="margin-left:8px; color:#555;">We accept cards</span>
             </div>
             <div style="margin-top:8px; font-size:0.95em; color:#d32f2f;">* : required input</div>
