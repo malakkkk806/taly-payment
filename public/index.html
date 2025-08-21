@@ -47,8 +47,8 @@
                     <div><label>Amount <span class="required">*</span></label><input type="number" id="regAmount" required></div>
                     <div><label>Currency <span class="required">*</span></label>
                         <select id="currency" required>
-                            <option value="USD">EGP</option>
-                            <option value="EGP">USD</option>
+                            <option value="EGP">EGP</option>
+                            <option value="USD">USD</option>
                             <option value="EUR">EUR</option>
                         </select>
                     </div>
@@ -101,8 +101,8 @@ document.getElementById('registerOrderForm').addEventListener('submit', async (e
         password: 'Admin@1234',
         orderNumber,
         amount,
-        currency: currency === 'EGP' ? '818' : currency,
-        returnUrl: 'https://tally-payment-production.up.railway.app/',  // لازم تستخدم URL حقيقي
+        currency: currency,
+        returnUrl: 'https://tally-payment-production.up.railway.app/',
         features: 'FORCE_SSL'
     });
 

@@ -80,7 +80,7 @@ app.post('/api/register-order', async (req, res) => {
             password,
             orderNumber,
             amount,
-            currency: currency || '818',
+            currency: currency || 'EGP',
             returnUrl: returnUrl || 'https://tally-payment-production.up.railway.app/',
             features: features || 'FORCE_SSL'
         };
