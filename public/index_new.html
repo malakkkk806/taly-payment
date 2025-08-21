@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Gateway</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f8f8;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+      margin: 20px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 2px 8px #0002;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      color: #c9a43a;
+      font-size: 1.8em;
+      margin: 0;
+    }
+    h2 {
+      color: #c9a43a;
+      margin-bottom: 12px;
+      font-size: 1.2em;
+    }
+    .section {
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .row > div {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      position: relative;
+      min-width: 250px;
+    }
+    .row i {
+      position: absolute;
+      left: 10px;
+      color: #777;
+      z-index: 1;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 10px 10px 35px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.95em;
+      box-sizing: border-box;
+    }
+    textarea {
+      padding-left: 10px;
+    }
+    .button-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .pay-btn { 
+      background: #000; 
+      color: #fff; 
+      border: none; 
+      padding: 12px 32px; 
+      border-radius: 6px; 
+      font-size: 1.1em; 
+      cursor: pointer; 
+      transition: background 0.3s ease, color 0.3s ease;
+      min-width: 180px;
+    }
+    .pay-btn:hover {
+      background: #c9a43a; 
+      color: #000;
+    }
+    .pay-btn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    .required {
+      color: #d32f2f;
+    }
+    .error {
+      color: #d32f2f;
+      margin-top: 12px;
+      padding: 10px;
+      background: #fff2f2;
+      border-radius: 4px;
+      border-left: 4px solid #d32f2f;
+    }
+    .success {
+      color: #388e3c;
+      margin-top: 12px;
+      padding: 10px;
+      background: #f2fff2;
+      border-radius: 4px;
+      border-left: 4px solid #388e3c;
+    }
+    .card-icons {
+      margin-top: 16px;
+      text-align: center;
+    }
+    .card-icons img {
+      height: 32px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+      .row > div {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span style="background:#c9a43a; color:white; padding:8px 12px; border-radius:6px; font-weight:bold; font-size:16px;">TALY</span>
+      <h1>Payment</h1>
+    </div>
+    <form id="registerOrderForm">
+      <div class="section">
+        <h2>Personal Details</h2>
+        <div class="row">
+          <div><i class="fa fa-user"></i><input type="text" placeholder="First Name *" id="firstName" required></div>
+          <div><i class="fa fa-user"></i><input type="text" placeholder="Last Name *" id="lastName" required></div>
+        </div>
+        <div class="row">
+          <div><i class="fa fa-mobile-alt"></i><input type="text" placeholder="Mobile" id="mobile"></div>
+          <div><i class="fa fa-envelope"></i><input type="email" placeholder="Email Address *" id="email" required></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Payment Details</h2>
+        <div class="row">
+          <div><i class="fa fa-money-bill"></i><input type="number" placeholder="Amount *" id="regAmount" required></div>
+          <div><i class="fa fa-coins"></i><input type="text" value="EGP" disabled style="background:#eee; font-weight:bold; padding-left:35px;"></div>
+        </div>
+        <div class="row">
+          <div>
+            <i class="fa fa-credit-card"></i>
+            <select id="installmentPlan">
+              <option value="">-</option>
+            </select>
+          </div>
+          <div><i class="fa fa-tag"></i><input type="text" placeholder="Promo Code" id="promoCode"></div>
+        </div>
+        <div class="row">
+          <div><i class="fa fa-briefcase"></i><input type="text" placeholder="Service" id="service"></div>
+        </div>
+        <label for="notes">Notes</label>
+        <textarea id="notes" rows="2"></textarea>
+        <div style="margin-top: 12px;">
+          <input type="checkbox" id="agree" required style="width: auto; margin-right: 8px;">
+          <label for="agree" style="margin: 0; font-weight: normal;">Agree on <a href="#" target="_blank">terms and conditions</a> <span class="required">*</span></label>
+        </div>
+      </div>
+
+      <div class="button-container">
+        <button type="submit" class="pay-btn">Pay Now</button>
+      </div>
+      
+      <div id="registerOrderResult"></div>
+      
+      <div class="card-icons">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" alt="Visa">
+        <img src="https://toppng.com/uploads/preview/mastercard-logo-blue-vector-master-card-logo-11563336609mkav9reydn.png" alt="MasterCard">
+        <img src="https://zeed.tech/wp-content/uploads/2022/04/NBE0.png" alt="NBE" style="height:28px;">
+        <img src="https://media.licdn.com/dms/image/v2/C4D0BAQHZO1q5WQn6mA/company-logo_200_200/company-logo_200_200/0/1677076088730?e=2147483647&v=beta&t=7CabkzbU89wxK22iHnrWoHurZZvjZwDTYJ-THHVvoX8" alt="Tally" style="height:28px;">
+        <span style="margin-left:8px; color:#555;">We accept cards</span>
+      </div>
+      <div style="margin-top:8px; font-size:0.95em; color:#d32f2f; text-align:center;">* : required input</div>
+    </form>
+  </div>
+
+<script>
+document.getElementById('registerOrderForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const resultDiv = document.getElementById('registerOrderResult');
+    resultDiv.className = '';
+    resultDiv.textContent = '';
+
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const amount = document.getElementById('regAmount').value.trim();
+    const agree = document.getElementById('agree').checked;
+
+    if (!firstName || !lastName || !email || !amount || !agree) {
+        resultDiv.className = 'error';
+        resultDiv.textContent = 'Please fill all required fields and agree to the terms.';
+        return;
+    }
+
+    const orderNumber = 'ORDER' + Date.now();
+
+    const params = new URLSearchParams({
+        userName: 'Booking_api',
+        password: 'Admin@1234',
+        orderNumber,
+        amount,
+        currency: '818',
+        returnUrl: 'https://tally-payment-production.up.railway.app/',
+        features: 'FORCE_SSL'
+    });
+
+    resultDiv.textContent = 'Processing...';
+
+    try {
+        const res = await fetch('/api/register-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.formUrl) {
+            window.location.href = result.formUrl;
+        } else {
+            resultDiv.className = 'error';
+            resultDiv.innerHTML = `<b>Register Order Error:</b><br><pre>${JSON.stringify(result, null, 2)}</pre>`;
+        }
+    } catch (err) {
+        resultDiv.className = 'error';
+        resultDiv.innerHTML = `<b>Network Error:</b> ${err.message}`;
+    }
+});
+</script>
+
+</body>
+</html>
