@@ -69,6 +69,7 @@
                 <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" alt="Visa">
                 <img src="https://toppng.com/uploads/preview/mastercard-logo-blue-vector-master-card-logo-11563336609mkav9reydn.png" alt="MasterCard">
                 <img src="https://zeed.tech/wp-content/uploads/2022/04/NBE0.png" alt="NBE" style="height:28px;">
+                <img src="https://media.licdn.com/dms/image/v2/C4D0BAQHZO1q5WQn6mA/company-logo_200_200/company-logo_200_200/0/1677076088730?e=2147483647&v=beta&t=7CabkzbU89wxK22iHnrWoHurZZvjZwDTYJ-THHVvoX8" alt="Tally" style="height:28px;">
                 <span style="margin-left:8px; color:#555;">We accept cards</span>
             </div>
             <div style="margin-top:8px; font-size:0.95em; color:#d32f2f;">* : required input</div>
@@ -101,7 +102,7 @@ document.getElementById('registerOrderForm').addEventListener('submit', async (e
         password: 'Admin@1234',
         orderNumber,
         amount,
-        currency: currency,
+        currency: currency === 'EGP' ? '818' : currency,
         returnUrl: 'https://tally-payment-production.up.railway.app/',
         features: 'FORCE_SSL'
     });
