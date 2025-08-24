@@ -24,7 +24,7 @@ async function getKid() {
     const response = await axios.post(
         `${EPG_API_BASE}/api/Key`,
         {
-            username: process.env.TALLY_MERCHANT_USERNAME,
+            username: 'Booking_api',
             rsa_public_key: publicKey
         },
         {
@@ -63,8 +63,15 @@ async function getJwt(kid) {
 
 app.post('/api/register-order', async (req, res) => {
     try {
+        console.log('Received request body:', req.body);
+        
+        console.log('Getting KID...');
         const kid = await getKid();
+        console.log('KID received:', kid);
+        
+        console.log('Getting JWT...');
         const jwt = await getJwt(kid);
+        console.log('JWT received:', jwt ? 'Yes' : 'No');
 
         const {
             username,
@@ -76,8 +83,18 @@ app.post('/api/register-order', async (req, res) => {
             features
         } = req.body;
 
-        const registerData = {
+        console.log('Extracted fields:', {
             username,
+            password: password ? '***' : undefined,
+            orderNumber,
+            amount,
+            currency,
+            returnUrl,
+            features
+        });
+
+        const registerData = {
+            userName: username, // Try with camelCase
             password,
             orderNumber,
             amount,
@@ -86,9 +103,17 @@ app.post('/api/register-order', async (req, res) => {
             features: features || 'FORCE_SSL'
         };
 
+        console.log('Sending to payment gateway:', {
+            ...registerData,
+            password: '***'
+        });
+
+        const urlParams = new URLSearchParams(registerData);
+        console.log('URL Parameters:', urlParams.toString());
+
         const response = await axios.post(
             'https://sndbx-payment.taly.com.eg/epg/rest/register.do',
-            new URLSearchParams(registerData),
+            urlParams,
             {
                 headers: {
                     'Authorization': `Bearer ${jwt}`,
@@ -114,6 +139,12 @@ app.post('/api/register-order', async (req, res) => {
         }
     } catch (error) {
         console.error('Register Order Error:', error.message);
+        console.error('Error details:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            headers: error.response?.headers
+        });
         res.json({
             success: false,
             error: error.message,
