@@ -134,9 +134,8 @@
 <body>
   <div class="container">
     <div class="header">
-  <img src="/public/images/logo.png" alt="BookingCW Logo" style="height:50px; border-radius:6px;">
-
-     <h1>Payment</h1>
+  <img src="/public/images/logo.png" alt="BookingCW Logo" style="height:50px; border-radius:6px; vertical-align:middle;">
+  <span style="font-weight:bold; color:#C9A23B; font-size:2em; vertical-align:middle; margin-left:10px;">Payment</span>
     </div>
     <form id="registerOrderForm">
       <div class="section">
@@ -204,7 +203,7 @@ document.getElementById('registerOrderForm').addEventListener('submit', async (e
     const orderNumber = 'ORDER' + Date.now();
 
     const params = new URLSearchParams({
-        userName: 'Booking_api',
+        username: 'Booking_api',
         password: 'Admin@1234',
         orderNumber,
         amount,

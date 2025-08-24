@@ -7,13 +7,13 @@ require('dotenv').config();
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-app.use(express.static(path.join(__dirname, "public")));
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, "public")));
 
 const EPG_API_BASE = 'https://sndbx-epgapi.taly.com.eg:5002';
 
@@ -67,7 +67,7 @@ app.post('/api/register-order', async (req, res) => {
         const jwt = await getJwt(kid);
 
         const {
-            userName,
+            username,
             password,
             orderNumber,
             amount,
@@ -77,7 +77,7 @@ app.post('/api/register-order', async (req, res) => {
         } = req.body;
 
         const registerData = {
-            userName,
+            username,
             password,
             orderNumber,
             amount,
