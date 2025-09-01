@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use(express.static(path.join(__dirname, "public")));
 
-const EPG_API_BASE = 'https://sndbx-epgapi.taly.com.eg:5002';
+const EPG_API_BASE = 'https://epgapi.taly.com.eg:5002/swagger/index.html';
 
 async function getKid() {
     const rawPublicKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'publickey.txt'), 'utf8');
@@ -157,4 +157,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
 
