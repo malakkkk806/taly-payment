@@ -1,12 +1,10 @@
-// server.js - Production Ready
+// server.js - Production Ready with ENV
 
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -21,8 +19,7 @@ const PAYMENT_API_URL = 'https://payment.taly.com.eg/epg/rest/register.do'; // P
 
 // ---------- Get KID ----------
 async function getKid() {
-    const rawPublicKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'publickey.txt'), 'utf8');
-    const publicKey = rawPublicKey.replace(/\\n/g, '\n');
+    const publicKey = process.env.TALLY_PUBLIC_KEY.replace(/\\n/g, '\n');
 
     const response = await axios.post(
         `${EPG_API_BASE}/api/Key`,
@@ -44,8 +41,7 @@ async function getKid() {
 
 // ---------- Get JWT ----------
 async function getJwt(kid) {
-    const rawPrivateKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'privatekey.txt'), 'utf8');
-    const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
+    const privateKey = process.env.TALLY_PRIVATE_KEY.replace(/\\n/g, '\n');
 
     const response = await axios.post(
         `${EPG_API_BASE}/api/CreateJWT`,
