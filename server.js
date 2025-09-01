@@ -21,7 +21,7 @@ async function getKid() {
     const publicKey = rawPublicKey.replace(/\\n/g, '\n');
 
     const response = await axios.post(
-        ${EPG_API_BASE}/api/Key,
+        `${EPG_API_BASE}/api/Key`,
         {
             username: process.env.TALLY_MERCHANT_USERNAME,
             rsa_public_key: publicKey
@@ -43,7 +43,7 @@ async function getJwt(kid) {
     const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
 
     const response = await axios.post(
-        ${EPG_API_BASE}/api/CreateJWT,
+        `${EPG_API_BASE}/api/CreateJWT`,
         {
             kid: kid,
             rsa_private_key: privateKey
@@ -80,17 +80,17 @@ app.post('/api/register-order', async (req, res) => {
             password: process.env.TALLY_MERCHANT_PASSWORD,
             orderNumber,
             amount,
-            currency: currency || '818',
+            currency: currency || '818', // 818 = EGP
             returnUrl: returnUrl || 'https://tally-payment-production.up.railway.app/',
             features: features || 'FORCE_SSL'
         };
 
         const response = await axios.post(
-            'https://sndbx-payment.taly.com.eg/epg/rest/register.do',
+            'https://payment.taly.com.eg/epg/rest/register.do',
             new URLSearchParams(registerData),
             {
                 headers: {
-                    'Authorization': Bearer ${jwt},
+                    'Authorization': `Bearer ${jwt}`,
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json'
                 }
@@ -123,6 +123,5 @@ app.post('/api/register-order', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(Server running on http://localhost:${PORT});
+    console.log(`Server running on http://localhost:${PORT}`);
 });
-
