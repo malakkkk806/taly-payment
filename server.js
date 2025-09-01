@@ -1,4 +1,4 @@
-// server.js - ready for Railway deployment
+// server.js - Production Ready
 
 const express = require('express');
 const cors = require('cors');
@@ -14,8 +14,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-const EPG_API_BASE = 'https://epgapi.taly.com.eg:5002'; 
+// ================== PRODUCTION BASE ==================
+const EPG_API_BASE = 'https://epgapi.taly.com.eg:5002'; // Production API
+const PAYMENT_API_URL = 'https://payment.taly.com.eg/epg/rest/register.do'; // Production Payment
+// =====================================================
 
+// ---------- Get KID ----------
 async function getKid() {
     const rawPublicKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'publickey.txt'), 'utf8');
     const publicKey = rawPublicKey.replace(/\\n/g, '\n');
@@ -38,13 +42,10 @@ async function getKid() {
     return response.data.kid;
 }
 
+// ---------- Get JWT ----------
 async function getJwt(kid) {
     const rawPrivateKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'privatekey.txt'), 'utf8');
     const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
-
-    console.log("====== REGISTER DATA SENT TO GATEWAY ======");
-    console.log(registerData);
-    console.log("===========================================");
 
     const response = await axios.post(
         `${EPG_API_BASE}/api/CreateJWT`,
@@ -64,6 +65,7 @@ async function getJwt(kid) {
     return response.data.JWToken;
 }
 
+// ---------- Register Order ----------
 app.post('/api/register-order', async (req, res) => {
     try {
         const kid = await getKid();
@@ -71,7 +73,6 @@ app.post('/api/register-order', async (req, res) => {
 
         const {
             userName,
-            password,
             orderNumber,
             amount,
             currency,
@@ -80,17 +81,21 @@ app.post('/api/register-order', async (req, res) => {
         } = req.body;
 
         const registerData = {
-            userName,
+            userName: userName || process.env.TALLY_MERCHANT_USERNAME,
             password: process.env.TALLY_MERCHANT_PASSWORD,
             orderNumber,
             amount,
             currency: currency || '818', // 818 = EGP
-            returnUrl: returnUrl || 'https://tally-payment-production.up.railway.app/',
+            returnUrl: returnUrl || 'https://your-domain.com/payment-callback',
             features: features || 'FORCE_SSL'
         };
 
+        console.log("===== Sending to Payment Gateway =====");
+        console.log(registerData);
+        console.log("======================================");
+
         const response = await axios.post(
-            'https://payment.taly.com.eg/epg/rest/register.do',
+            PAYMENT_API_URL,
             new URLSearchParams(registerData),
             {
                 headers: {
@@ -125,8 +130,8 @@ app.post('/api/register-order', async (req, res) => {
     }
 });
 
+// ---------- Start Server ----------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
-
