@@ -42,6 +42,10 @@ async function getJwt(kid) {
     const rawPrivateKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'privatekey.txt'), 'utf8');
     const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
 
+    console.log("====== REGISTER DATA SENT TO GATEWAY ======");
+    console.log(registerData);
+    console.log("===========================================");
+
     const response = await axios.post(
         `${EPG_API_BASE}/api/CreateJWT`,
         {
@@ -125,3 +129,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
