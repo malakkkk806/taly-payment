@@ -13,18 +13,17 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
-app.use(express.static(path.join(__dirname, "public")));
 
-const EPG_API_BASE = 'https://epgapi.taly.com.eg:5002/swagger/index.html';
+const EPG_API_BASE = 'https://epgapi.taly.com.eg:5002/swagger/index.html'; 
 
 async function getKid() {
     const rawPublicKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'publickey.txt'), 'utf8');
     const publicKey = rawPublicKey.replace(/\\n/g, '\n');
 
     const response = await axios.post(
-        `${EPG_API_BASE}/api/Key`,
+        ${EPG_API_BASE}/api/Key,
         {
-            username: 'Booking_api',
+            username: process.env.TALLY_MERCHANT_USERNAME,
             rsa_public_key: publicKey
         },
         {
@@ -44,7 +43,7 @@ async function getJwt(kid) {
     const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
 
     const response = await axios.post(
-        `${EPG_API_BASE}/api/CreateJWT`,
+        ${EPG_API_BASE}/api/CreateJWT,
         {
             kid: kid,
             rsa_private_key: privateKey
@@ -63,18 +62,11 @@ async function getJwt(kid) {
 
 app.post('/api/register-order', async (req, res) => {
     try {
-        console.log('Received request body:', req.body);
-        
-        console.log('Getting KID...');
         const kid = await getKid();
-        console.log('KID received:', kid);
-        
-        console.log('Getting JWT...');
         const jwt = await getJwt(kid);
-        console.log('JWT received:', jwt ? 'Yes' : 'No');
 
         const {
-            username,
+            userName,
             password,
             orderNumber,
             amount,
@@ -83,19 +75,9 @@ app.post('/api/register-order', async (req, res) => {
             features
         } = req.body;
 
-        console.log('Extracted fields:', {
-            username,
-            password: password ? '***' : undefined,
-            orderNumber,
-            amount,
-            currency,
-            returnUrl,
-            features
-        });
-
         const registerData = {
-            userName: username, // Try with camelCase
-            password,
+            userName,
+            password: process.env.TALLY_MERCHANT_PASSWORD,
             orderNumber,
             amount,
             currency: currency || '818',
@@ -103,20 +85,12 @@ app.post('/api/register-order', async (req, res) => {
             features: features || 'FORCE_SSL'
         };
 
-        console.log('Sending to payment gateway:', {
-            ...registerData,
-            password: '***'
-        });
-
-        const urlParams = new URLSearchParams(registerData);
-        console.log('URL Parameters:', urlParams.toString());
-
         const response = await axios.post(
             'https://sndbx-payment.taly.com.eg/epg/rest/register.do',
-            urlParams,
+            new URLSearchParams(registerData),
             {
                 headers: {
-                    'Authorization': `Bearer ${jwt}`,
+                    'Authorization': Bearer ${jwt},
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json'
                 }
@@ -139,12 +113,6 @@ app.post('/api/register-order', async (req, res) => {
         }
     } catch (error) {
         console.error('Register Order Error:', error.message);
-        console.error('Error details:', {
-            status: error.response?.status,
-            statusText: error.response?.statusText,
-            data: error.response?.data,
-            headers: error.response?.headers
-        });
         res.json({
             success: false,
             error: error.message,
@@ -155,7 +123,5 @@ app.post('/api/register-order', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(Server running on http://localhost:${PORT});
 });
-
-
