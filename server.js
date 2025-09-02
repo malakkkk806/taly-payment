@@ -22,13 +22,18 @@ async function getKid() {
     console.log("Merchant Username from ENV:", process.env.TALLY_MERCHANT_USERNAME);
 
     const publicKey = process.env.TALLY_PUBLIC_KEY.replace(/\\n/g, '\n');
+    console.log("Public Key (first 100 chars):", publicKey.substring(0, 100));
+
+    const payload = {
+        username: process.env.TALLY_MERCHANT_USERNAME,
+        rsa_public_key: publicKey
+    };
+
+    console.log("Payload sent to /api/Key:", payload);
 
     const response = await axios.post(
         `${EPG_API_BASE}/api/Key`,
-        {
-            username: process.env.TALLY_MERCHANT_USERNAME,
-            rsa_public_key: publicKey
-        },
+        payload,
         {
             headers: {
                 'Content-Type': 'application/json',
@@ -36,6 +41,8 @@ async function getKid() {
             }
         }
     );
+
+    console.log("Response from /api/Key:", response.data);
 
     if (!response.data.kid) throw new Error('No KID received');
     return response.data.kid;
@@ -133,3 +140,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
