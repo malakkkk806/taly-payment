@@ -156,7 +156,7 @@ app.post('/api/register-order', async (req, res) => {
             userName: process.env.TALLY_MERCHANT_USERNAME,
             password: process.env.TALLY_MERCHANT_PASSWORD,
             orderNumber,
-            amount: amount * 100,
+            amount,
             currency: currency || '818',
             returnUrl: returnUrl || 'https://payment.bookingcwa.com/',
 
