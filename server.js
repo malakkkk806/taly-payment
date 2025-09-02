@@ -158,7 +158,7 @@ app.post('/api/register-order', async (req, res) => {
             orderNumber,
             amount,
             currency: currency || '818',
-            returnUrl: returnUrl || 'https://tally-payment-production.up.railway.app/',
+            returnUrl: returnUrl || 'https://payment.bookingcwa.com/',
             features: features || 'FORCE_SSL'
         };
 
