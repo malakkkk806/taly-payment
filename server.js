@@ -24,7 +24,7 @@ async function getKid() {
     const response = await axios.post(
         `${EPG_API_BASE}/api/Key`,
         {
-            username: process.env.TALLY_MERCHANT_USERNAME,
+            username: process.env.Booking_api,
             rsa_public_key: publicKey
         },
         {
@@ -131,3 +131,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
