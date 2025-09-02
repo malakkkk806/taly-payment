@@ -19,6 +19,7 @@ const PAYMENT_API_URL = 'https://payment.taly.com.eg/epg/rest/register.do'; // P
 
 // ---------- Get KID ----------
 async function getKid() {
+    console.log("Merchant Username from ENV:", process.env.TALLY_MERCHANT_USERNAME);
     const publicKey = process.env.TALLY_PUBLIC_KEY.replace(/\\n/g, '\n');
 
     const response = await axios.post(
@@ -131,4 +132,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
 
