@@ -159,7 +159,7 @@ app.post('/api/register-order', async (req, res) => {
             amount,
             currency: currency || '818',
             returnUrl: returnUrl || 'https://payment.bookingcwa.com/',
-            features: features || 'FORCE_SSL'
+            features: features || '' // Remove FORCE_SSL default
         };
 
         console.log('💳 Sending payment registration to Tally...');

@@ -230,7 +230,7 @@ document.getElementById('registerOrderForm').addEventListener('submit', async (e
         amount,
         currency: '818',
         returnUrl: 'https://payment.bookingcwa.com/',
-        features: 'FORCE_SSL'
+        features: '' // Remove FORCE_SSL
     });
 
     resultDiv.textContent = 'Processing...';
