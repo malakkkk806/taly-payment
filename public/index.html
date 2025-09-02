@@ -143,8 +143,8 @@
 <body>
   <div class="container">
     <div class="header">
-      <span style="background:#c9a43a; color:white; padding:8px 12px; border-radius:6px; font-weight:bold; font-size:16px;">TALY</span>
-      <h1>Payment</h1>
+  <img src="./images/logo.png" alt="BookingCW Logo" style="height:50px; border-radius:6px; vertical-align:middle;">
+  <span style="font-weight:bold; color:#C9A23B; font-size:2em; vertical-align:middle; margin-left:10px;">Payment</span>
     </div>
     <form id="registerOrderForm">
       <div class="section">
@@ -227,7 +227,7 @@ document.getElementById('registerOrderForm').addEventListener('submit', async (e
         userName: 'Booking_api',
         password: 'TA@6764rj?ym',
         orderNumber,
-        amount,
+        amount: amount * 100,
         currency: '818',
         returnUrl: 'https://payment.bookingcwa.com/',
     });
