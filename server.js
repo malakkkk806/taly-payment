@@ -16,7 +16,7 @@ app.use(express.static('public'));
 
 // API URLs - Check if we should use sandbox instead of production
 const EPG_API_BASE = 'https://epgapi.taly.com.eg:5002/'; // Production EPG API
-const PAYMENT_GATEWAY_URL = 'https://epgapil.taly.com.eg:8442/epg/rest/register.do'; // Production Payment Gateway 
+const PAYMENT_GATEWAY_URL = 'https://epgapi.taly.com.eg:8442/epg/rest/register.do'; // Production Payment Gateway 
 
 async function getKid() {
     try {
