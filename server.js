@@ -14,42 +14,56 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// Production URLs
-const EPG_API_BASE = 'https://epgapi.taly.com.eg:5002'; // Production EPG API
-const PAYMENT_GATEWAY_URL = 'https://epgapi.taly.com.eg/epg/rest/register.do'; // Production Payment Gateway 
+// API URLs - Check if we should use sandbox instead of production
+const EPG_API_BASE = 'https://epgapi.taly.com.eg:5002/'; // Production EPG API
+const PAYMENT_GATEWAY_URL = 'https://epgapil.taly.com.eg:8442/epg/rest/register.do'; // Production Payment Gateway 
 
 async function getKid() {
     try {
         console.log('🔑 Getting KID from EPG API...');
         const rawPublicKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'publickey.txt'), 'utf8');
-        const publicKey = rawPublicKey.replace(/\\n/g, '\n');
+        // Handle both literal \n and actual newlines
+        const publicKey = rawPublicKey.replace(/\\n/g, '\n').trim();
+
+        console.log('🔍 Public key format check:', {
+            hasBeginMarker: publicKey.includes('-----BEGIN PUBLIC KEY-----'),
+            hasEndMarker: publicKey.includes('-----END PUBLIC KEY-----'),
+            length: publicKey.length,
+            firstLine: publicKey.split('\n')[0]
+        });
 
         const requestData = {
             username: process.env.TALLY_MERCHANT_USERNAME,
             rsa_public_key: publicKey
         };
         
-        console.log('📤 Sending KID request to:', `${EPG_API_BASE}/api/Key`);
+        console.log('📤 Sending KID request to:', `${EPG_API_BASE}api/Key`);
         console.log('📤 Request data:', { 
             username: requestData.username, 
-            rsa_public_key: publicKey.substring(0, 50) + '...' 
+            rsa_public_key_preview: publicKey.substring(0, 50) + '...',
+            rsa_public_key_length: publicKey.length
         });
 
         const response = await axios.post(
-            `${EPG_API_BASE}/api/Key`,
+            `${EPG_API_BASE}api/Key`,
             requestData,
             {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
-                }
+                },
+                timeout: 30000 // 30 seconds timeout
             }
         );
 
         console.log('✅ KID Response status:', response.status);
         console.log('✅ KID Response data:', response.data);
+        console.log('✅ KID Response headers:', response.headers);
 
-        if (!response.data.kid) throw new Error('No KID received');
+        if (!response.data || !response.data.kid) {
+            console.error('❌ No KID in response. Full response:', JSON.stringify(response.data, null, 2));
+            throw new Error(`No KID received. Response: ${JSON.stringify(response.data)}`);
+        }
         return response.data.kid;
     } catch (error) {
         console.error('❌ KID Error:', error.message);
@@ -66,34 +80,48 @@ async function getJwt(kid) {
     try {
         console.log('🔐 Getting JWT token...');
         const rawPrivateKey = fs.readFileSync(path.join(__dirname, 'Booking_api[1]', 'privatekey.txt'), 'utf8');
-        const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
+        // Handle both literal \n and actual newlines
+        const privateKey = rawPrivateKey.replace(/\\n/g, '\n').trim();
+
+        console.log('🔍 Private key format check:', {
+            hasBeginMarker: privateKey.includes('-----BEGIN RSA PRIVATE KEY-----'),
+            hasEndMarker: privateKey.includes('-----END RSA PRIVATE KEY-----'),
+            length: privateKey.length,
+            firstLine: privateKey.split('\n')[0]
+        });
 
         const requestData = {
             kid: kid,
             rsa_private_key: privateKey
         };
 
-        console.log('📤 Sending JWT request to:', `${EPG_API_BASE}/api/CreateJWT`);
+        console.log('📤 Sending JWT request to:', `${EPG_API_BASE}api/CreateJWT`);
         console.log('📤 Request data:', { 
             kid: kid, 
-            rsa_private_key: privateKey.substring(0, 50) + '...' 
+            rsa_private_key_preview: privateKey.substring(0, 50) + '...',
+            rsa_private_key_length: privateKey.length
         });
 
         const response = await axios.post(
-            `${EPG_API_BASE}/api/CreateJWT`,
+            `${EPG_API_BASE}api/CreateJWT`,
             requestData,
             {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
-                }
+                },
+                timeout: 30000 // 30 seconds timeout
             }
         );
 
         console.log('✅ JWT Response status:', response.status);
         console.log('✅ JWT Response data:', response.data);
+        console.log('✅ JWT Response headers:', response.headers);
 
-        if (!response.data.JWToken) throw new Error('No JWT received');
+        if (!response.data || !response.data.JWToken) {
+            console.error('❌ No JWT in response. Full response:', JSON.stringify(response.data, null, 2));
+            throw new Error(`No JWT received. Response: ${JSON.stringify(response.data)}`);
+        }
         return response.data.JWToken;
     } catch (error) {
         console.error('❌ JWT Error:', error.message);
