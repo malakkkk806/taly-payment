@@ -13,19 +13,20 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 
 // ================== PRODUCTION BASE ==================
-const EPG_API_BASE = 'https://epgapi.taly.com.eg:5002'; // Production API
-const PAYMENT_API_URL = 'https://payment.taly.com.eg/epg/rest/register.do'; // Production Payment
+const EPG_API_BASE = process.env.TALLY_BASE_URL || 'https://epgapi.taly.com.eg:5002'; // Production API
+const PAYMENT_API_URL = process.env.TALLY_PAYMENT_URL || 'https://payment.taly.com.eg/epg/rest/register.do'; // Production Payment
 // =====================================================
 
 // ---------- Get KID ----------
 async function getKid() {
     console.log("Merchant Username from ENV:", process.env.TALLY_MERCHANT_USERNAME);
+
     const publicKey = process.env.TALLY_PUBLIC_KEY.replace(/\\n/g, '\n');
 
     const response = await axios.post(
         `${EPG_API_BASE}/api/Key`,
         {
-            username: process.env.Booking_api,
+            username: process.env.TALLY_MERCHANT_USERNAME,
             rsa_public_key: publicKey
         },
         {
@@ -132,5 +133,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
-
-
