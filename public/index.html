@@ -123,21 +123,11 @@
     .card-icons {
       margin-top: 16px;
       text-align: center;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
     }
     .card-icons img {
-      height: 40px;
-      max-width: 90px;
-      object-fit: contain;
-    }
-    .card-icons span {
-      margin-left: 8px;
-      color: #555;
-      font-size: 0.95em;
+      height: 32px;
+      margin-right: 8px;
+      vertical-align: middle;
     }
     
     @media (max-width: 600px) {
@@ -177,3 +167,100 @@
           <div><i class="fa fa-money-bill"></i><input type="number" placeholder="Amount *" id="regAmount" required></div>
           <div><i class="fa fa-coins"></i><input type="text" value="EGP" disabled style="background:#eee; font-weight:bold; padding-left:35px;"></div>
         </div>
+        <div class="row">
+          <div>
+            <i class="fa fa-credit-card"></i>
+            <select id="installmentPlan">
+              <option value="">-</option>
+            </select>
+          </div>
+          <div><i class="fa fa-tag"></i><input type="text" placeholder="Promo Code" id="promoCode"></div>
+        </div>
+        <div class="row">
+          <div><i class="fa fa-briefcase"></i><input type="text" placeholder="Service" id="service"></div>
+        </div>
+        <label for="notes">Notes</label>
+        <textarea id="notes" rows="2"></textarea>
+        <div style="margin-top: 12px;">
+          <input type="checkbox" id="agree" required style="width: auto; margin-right: 8px;">
+          <label for="agree" style="margin: 0; font-weight: normal;">Agree on <a href="#" target="_blank">terms and conditions</a> <span class="required">*</span></label>
+        </div>
+      </div>
+
+      <div class="button-container">
+        <button type="submit" class="pay-btn">Pay Now</button>
+      </div>
+      
+      <div id="registerOrderResult"></div>
+      
+      <div class="card-icons">
+        <!-- Visa -->
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_2021.svg" alt="Visa">
+        <!-- Mastercard -->
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="MasterCard">
+        <!-- Meeza -->
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Meeza_Logo.svg" alt="Meeza">
+        <span style="margin-left:8px; color:#555;">We accept cards</span>
+      </div>
+      <div style="margin-top:8px; font-size:0.95em; color:#d32f2f; text-align:center;">* : required input</div>
+    </form>
+  </div>
+
+<script>
+document.getElementById('registerOrderForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const resultDiv = document.getElementById('registerOrderResult');
+    resultDiv.className = '';
+    resultDiv.textContent = '';
+
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const amount = document.getElementById('regAmount').value.trim();
+    const agree = document.getElementById('agree').checked;
+
+    if (!firstName || !lastName || !email || !amount || !agree) {
+        resultDiv.className = 'error';
+        resultDiv.textContent = 'Please fill all required fields and agree to the terms.';
+        return;
+    }
+
+    const orderNumber = 'ORDER' + Date.now();
+
+    const params = new URLSearchParams({
+        userName: 'Booking_api',
+        password: 'TA@6764rj?ym',
+        orderNumber,
+        amount: amount * 100,
+        currency: '818',
+        returnUrl: 'https://payment.bookingcwa.com/',
+    });
+
+    resultDiv.textContent = 'Processing...';
+
+    try {
+        const res = await fetch('/api/register-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.formUrl) {
+            window.location.href = result.formUrl;
+        } else {
+            resultDiv.className = 'error';
+            resultDiv.innerHTML = `<b>Register Order Error:</b><br><pre>${JSON.stringify(result, null, 2)}</pre>`;
+        }
+    } catch (err) {
+        resultDiv.className = 'error';
+        resultDiv.innerHTML = `<b>Network Error:</b> ${err.message}`;
+    }
+});
+</script>
+
+</body>
+</html>
